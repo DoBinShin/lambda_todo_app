@@ -1,0 +1,16 @@
+{
+  "name": "lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -e \"import('./index.js').then(module => module.handler().then(res => console.log(res)))\""
+  },
+  "author": "DoBinShin",
+  "license": "ISC",
+  "dependencies": {
+    "@std/esm": "^0.26.0",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1"
+  }
+}
