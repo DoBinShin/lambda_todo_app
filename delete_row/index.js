@@ -40,15 +40,16 @@ module.exports.handler = async(event) => {
 
         const res = await deleteRow(query, [event.body]);
 
-        db.commit();
-
-        return {
-          statusCode : 200,
-          body : JSON.stringify(res.affectedRows)
-        }        
-      } else {
-        throw new Error("데이터가 없습니다.");
-      }
+        if(event.body.length == res.affectedRows) {
+            db.commit();
+            return {
+                statusCode : 200,
+                body : JSON.stringify(res.affectedRows)
+              }
+        } 
+        throw new Error("삭제 실패!");
+      } 
+      throw new Error("데이터가 없습니다.");
     } catch(err) {
       console.log(err);
       err.statusCode = 404;

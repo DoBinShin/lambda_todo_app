@@ -55,8 +55,6 @@ module.exports.handler = async(event) => {
 
         const res = await addTodo(sqls);
 
-        db.commit();
-
         let ids = [];
         res.forEach(item => {
             ids.push(item.insertId);
@@ -64,13 +62,17 @@ module.exports.handler = async(event) => {
 
         console.log(sqls, ids);
 
-        return {
-          statusCode : 200,
-          body : JSON.stringify(ids)
-        }        
-      } else {
+        if(event.body.length == ids) {
+          db.commit();
+          return {
+            statusCode : 200,
+            body : JSON.stringify(ids)
+          }    
+
+        }
+        throw new Error("저장 실패!");   
+      } 
         throw new Error("데이터가 없습니다.");
-      }
     } catch(err) {
       console.log(err);
       err.statusCode = 404;

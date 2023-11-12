@@ -47,22 +47,23 @@ module.exports.handler = async(event) => {
 
         const res = await putCompleted(sqls);
 
-        db.commit();
-
         let count = 0;
         res.forEach(item => {
             count += item.changedRows;
         });
 
-        console.log(sqls);
+        console.log(sqls, count);
 
-        return {
-          statusCode : 200,
-          body : count
-        }        
-      } else {
-        throw new Error("데이터가 없습니다.");
-      }
+        if(event.body.length == count) {
+          db.commit();
+          return {
+            statusCode : 200,
+            body : count
+          }    
+        }
+        throw new Error("수정 실패!");    
+      } 
+      throw new Error("데이터가 없습니다.");
     } catch(err) {
       console.log(err);
       err.statusCode = 404;
