@@ -10,12 +10,16 @@ module.exports.handler = async(event) => {
     `;
 
     try {
+      
+      const param = JSON.parse(event.body);
 
-      if(0 < event.body.length) {    
+      if(0 < param.length) {    
 
-        const [row, fields] = await conn.query(query, [event.body]);
+        const [row, fields] = await conn.query(query, [param]);
         
-        if(event.body.length == row.length) {
+        console.log(param, row);
+        
+        if(param.length == row.affectedRows) {
           conn.commit;
           return {
             statusCode : 200,
