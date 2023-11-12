@@ -1,31 +1,6 @@
-const mysql = require("mysql");
-const config = require("./config.json");
+const pool = require("./database");
 
-const db = mysql.createConnection({
-    host : config.host,
-    port : config.port,
-    user : config.user,
-    password : config.password,
-    database : config.database,
-    connectionLimit : 60
-});
-
-db.connect(error => {
-    if (error) throw error;
-    console.log('Connected to the database.');
-});
-
-function deleteRow(sql, values) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, values, (error, results) => {
-       if (error) {
-          reject(error);
-       } else {
-          resolve(results);
-       }
-    });
-  });
-}
+const conn = pool.promise();
 
 module.exports.handler = async(event) => {
     
@@ -38,15 +13,21 @@ module.exports.handler = async(event) => {
 
       if(0 < event.body.length) {    
 
-        const res = await deleteRow(query, [event.body]);
-
-        if(event.body.length == res.affectedRows) {
-            db.commit();
-            return {
-                statusCode : 200,
-                body : JSON.stringify(res.affectedRows)
-              }
-        } 
+        const [row, fields] = await conn.query(query, [event.body]);
+        
+        if(event.body.length == row.length) {
+          conn.commit;
+          return {
+            statusCode : 200,
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body : JSON.stringify({
+                    message : "SUCCESS"
+                  })
+          }
+        }
+        conn.rollback;
         throw new Error("삭제 실패!");
       } 
       throw new Error("데이터가 없습니다.");
@@ -55,6 +36,6 @@ module.exports.handler = async(event) => {
       err.statusCode = 404;
       return err;
     } finally {
-      db.destroy();
+      conn.releaseConnection();
     }
 }

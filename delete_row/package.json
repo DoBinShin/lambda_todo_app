@@ -1,14 +1,14 @@
 {
   "dependencies": {
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "mysql2": "^3.6.3"
   },
   "name": "delete_row",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node -e \"import('./index.js').then(module => module.handler({body : ['1','2']}).then(res => console.log(res)))\""
+    "start": "node -e \"import('./index.js').then(module => module.handler({body : ['4ee0df251e85a60989ed07e4e0922677','4f7a3dc43bb5885982299d9aea7cbd33']}).then(res => console.log(res)))\""
   },
   "author": "",
   "license": "ISC",

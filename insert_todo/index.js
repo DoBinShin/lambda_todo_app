@@ -1,6 +1,8 @@
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const {v4: uuidv4} = require("uuid");
-const config = require("./config.json");
+const pool = require("./database");
+
+const conn = pool.promise();
 
 // uuid setting
 const uuid = () => {
@@ -8,76 +10,45 @@ const uuid = () => {
   return tokens[2] + tokens[1] + tokens[0] + tokens[3] + tokens[4];
 }
 
-const db = mysql.createConnection({
-    host : config.host,
-    port : config.port,
-    user : config.user,
-    password : config.password,
-    database : config.database,
-    connectionLimit : 60,
-    multipleStatements : true
-});
-
-db.connect(error => {
-    if (error) throw error;
-    console.log('Connected to the database.');
-});
-
-function addTodo(sql) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, (error, results) => {
-       if (error) {
-          reject(error);
-       } else {
-          resolve(results);
-       }
-    });
-  });
-}
-
 module.exports.handler = async(event) => {
     
-    const query = `
-     INSERT INTO TODO
-     VALUES(?,?,?);
+    const query = ` 
+      INSERT INTO TODO
+      VALUES(?,?,?);
     `;
-
+  
     try {
 
-      if(0 < event.body.length) {    
-        
+      if(0 < event.body.length) {            
         let sqls = "";
         
-        event.body.forEach(item => {
-          sqls += mysql.format(query, [uuid(), item.title, item.completed]);
-        });
-
-
-        const res = await addTodo(sqls);
-
         let ids = [];
-        res.forEach(item => {
-            ids.push(item.insertId);
+        event.body.forEach(item => {
+          const uuid = uuid();
+          ids.push(uuid);
+          sqls += mysql.format(query, [uuid, item.title, item.completed]);
         });
 
-        console.log(sqls, ids);
-
-        if(event.body.length == ids) {
-          db.commit();
+        const [row, fields] = await conn.query(sqls);
+        if(event.body.length == row.length) {
+          conn.commit;
           return {
             statusCode : 200,
+            headers: {
+              "Content-Type": "application/json"
+            },
             body : JSON.stringify(ids)
           }    
-
         }
-        throw new Error("저장 실패!");   
+        conn.rollback;
+        throw new Error("저장 실패!");
       } 
-        throw new Error("데이터가 없습니다.");
+      throw new Error("데이터가 없습니다.");
     } catch(err) {
       console.log(err);
       err.statusCode = 404;
       return err;
     } finally {
-      db.destroy();
+      conn.releaseConnection();
     }
 }

@@ -1,32 +1,7 @@
-const mysql = require("mysql");
-const config = require("./config.json");
+const mysql = require("mysql2");
+const pool = require("./database");
 
-const db = mysql.createConnection({
-    host : config.host,
-    port : config.port,
-    user : config.user,
-    password : config.password,
-    database : config.database,
-    connectionLimit : 60,
-    multipleStatements : true
-});
-
-db.connect(error => {
-    if (error) throw error;
-    console.log('Connected to the database.');
-});
-
-function putCompleted(sql) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, (error, results) => {
-       if (error) {
-          reject(error);
-       } else {
-          resolve(results);
-       }
-    });
-  });
-}
+const conn = pool.promise();
 
 module.exports.handler = async(event) => {
     
@@ -45,23 +20,22 @@ module.exports.handler = async(event) => {
           sqls += mysql.format(query, [item.completed, item.id]);
         });
 
-        const res = await putCompleted(sqls);
+        const [row, fields] = await conn.query(sqls);
 
-        let count = 0;
-        res.forEach(item => {
-            count += item.changedRows;
-        });
-
-        console.log(sqls, count);
-
-        if(event.body.length == count) {
-          db.commit();
+        if(event.body.length == row.length) {
+          conn.commit;
           return {
             statusCode : 200,
-            body : count
-          }    
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body : JSON.stringify({
+                    message : "SUCCESS",
+                  })
+          }   
         }
-        throw new Error("수정 실패!");    
+        conn.rollback;
+        throw new Error("수정 실패!"); 
       } 
       throw new Error("데이터가 없습니다.");
     } catch(err) {
@@ -69,6 +43,6 @@ module.exports.handler = async(event) => {
       err.statusCode = 404;
       return err;
     } finally {
-      db.destroy();
-    }
+      conn.releaseConnection();
+  }
 }

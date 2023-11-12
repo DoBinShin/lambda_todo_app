@@ -1,42 +1,18 @@
-const mysql = require("mysql");
-const config = require("./config.json");
+const pool = require("./database");
 
-const db = mysql.createConnection({
-    host : config.host,
-    port : config.port,
-    user : config.user,
-    password : config.password,
-    database : config.database,
-    connectionLimit : 60
-});
-
-db.connect(error => {
-    if (error) throw error;
-    console.log('Connected to the database.');
-});
-
-function getList(sql) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, (error, results) => {
-       if (error) {
-          reject(error);
-       } else {
-          resolve(results);
-       }
-    });
-  });
-}
+const conn = pool.promise();
 
 module.exports.handler = async (event) => {
-    
     const query =`SELECT * FROM TODO`;   
     
     try {     
-        
-        const result = await getList(query);
+        const [row, fields] = await conn.query(query);
         return {
-            statusCode : 200,
-            body : JSON.stringify(result)
+            statusCode: 200,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(row)
         }
     } catch(err) {
         console.log(err);
@@ -44,6 +20,6 @@ module.exports.handler = async (event) => {
         err.message = "조회 실패";
         return err;
     } finally {
-        db.destroy();
+        conn.releaseConnection();
     }
 }
