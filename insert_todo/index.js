@@ -1,5 +1,12 @@
 const mysql = require("mysql");
+const {v4: uuidv4} = require("uuid");
 const config = require("./config.json");
+
+// uuid setting
+const uuid = () => {
+  const tokens = uuidv4().split('-')
+  return tokens[2] + tokens[1] + tokens[0] + tokens[3] + tokens[4];
+}
 
 const db = mysql.createConnection({
     host : config.host,
@@ -32,7 +39,7 @@ module.exports.handler = async(event) => {
     
     const query = `
      INSERT INTO TODO
-     SET ?;
+     VALUES(?,?,?);
     `;
 
     try {
@@ -40,18 +47,22 @@ module.exports.handler = async(event) => {
       if(0 < event.body.length) {    
         
         let sqls = "";
+        
         event.body.forEach(item => {
-          sqls += mysql.format(query, [item.id, item.title, item.completed]);
+          sqls += mysql.format(query, [uuid(), item.title, item.completed]);
         });
 
+
         const res = await addTodo(sqls);
+
+        db.commit();
 
         let ids = [];
         res.forEach(item => {
             ids.push(item.insertId);
         });
 
-        console.log(sqls);
+        console.log(sqls, ids);
 
         return {
           statusCode : 200,

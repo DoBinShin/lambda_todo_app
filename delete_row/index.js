@@ -7,8 +7,7 @@ const db = mysql.createConnection({
     user : config.user,
     password : config.password,
     database : config.database,
-    connectionLimit : 60,
-    multipleStatements : true
+    connectionLimit : 60
 });
 
 db.connect(error => {
@@ -16,9 +15,9 @@ db.connect(error => {
     console.log('Connected to the database.');
 });
 
-function putCompleted(sql) {
+function deleteRow(sql, values) {
   return new Promise((resolve, reject) => {
-    db.query(sql, (error, results) => {
+    db.query(sql, values, (error, results) => {
        if (error) {
           reject(error);
        } else {
@@ -31,34 +30,21 @@ function putCompleted(sql) {
 module.exports.handler = async(event) => {
     
     const query = `
-     UPDATE TODO
-     SET completed = ?
-     WHERE id = ?;
+     DELETE FROM TODO
+     WHERE id IN (?);
     `;
 
     try {
 
       if(0 < event.body.length) {    
-        
-        let sqls = "";
-        event.body.forEach(item => {
-          sqls += mysql.format(query, [item.completed, item.id]);
-        });
 
-        const res = await putCompleted(sqls);
+        const res = await deleteRow(query, [event.body]);
 
         db.commit();
 
-        let count = 0;
-        res.forEach(item => {
-            count += item.changedRows;
-        });
-
-        console.log(sqls);
-
         return {
           statusCode : 200,
-          body : count
+          body : JSON.stringify(res.affectedRows)
         }        
       } else {
         throw new Error("데이터가 없습니다.");
