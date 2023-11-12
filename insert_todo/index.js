@@ -13,24 +13,29 @@ const uuid = () => {
 module.exports.handler = async(event) => {
     
     const query = ` 
-      INSERT INTO TODO
+      INSERT INTO TODO (ID, TITLE, COMPLETED)
       VALUES(?,?,?);
     `;
   
     try {
 
-      if(0 < event.body.length) {            
+      const param = JSON.parse(event.body);
+
+      if(0 < param.length) {            
         let sqls = "";
         
         let ids = [];
-        event.body.forEach(item => {
-          const uuid = uuid();
-          ids.push(uuid);
-          sqls += mysql.format(query, [uuid, item.title, item.completed]);
+        param.forEach(item => {
+          const randomId = uuid();
+          ids.push(randomId);
+          sqls += mysql.format(query, [randomId, item.title, item.completed]);
         });
 
         const [row, fields] = await conn.query(sqls);
-        if(event.body.length == row.length) {
+        
+        console.log(param, row);
+        
+        if(param.length == row.affectedRows) {
           conn.commit;
           return {
             statusCode : 200,

@@ -3,7 +3,10 @@ const pool = require("./database");
 const conn = pool.promise();
 
 module.exports.handler = async (event) => {
-    const query =`SELECT * FROM TODO`;   
+    const query =`
+        SELECT * FROM TODO A
+        ORDER BY A.ORDER ASC
+    `;   
     
     try {     
         const [row, fields] = await conn.query(query);

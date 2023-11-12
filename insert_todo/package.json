@@ -9,7 +9,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node -e \"import('./index.js').then(module => module.handler({body : [{title:'test1',completed:true},{title:'test2',completed:true}]}).then(res => console.log(res)))\""
+    "start": "node -e \"import('./index.js').then(module => module.handler({body : [{title:'test5',completed:true},{title:'test6',completed:true}]}).then(res => console.log(res)))\""
   },
   "author": "",
   "license": "ISC",

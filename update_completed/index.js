@@ -13,16 +13,20 @@ module.exports.handler = async(event) => {
 
     try {
 
-      if(0 < event.body.length) {    
+      const param = JSON.parse(event.body);
+
+      if(0 < param.length) {    
         
         let sqls = "";
-        event.body.forEach(item => {
+        param.forEach(item => {
           sqls += mysql.format(query, [item.completed, item.id]);
         });
 
         const [row, fields] = await conn.query(sqls);
 
-        if(event.body.length == row.length) {
+        console.log(param, row);
+
+        if(param.length == row.length) {
           conn.commit;
           return {
             statusCode : 200,

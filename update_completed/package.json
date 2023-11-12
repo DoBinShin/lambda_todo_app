@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "express": "^4.18.2",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "mysql2": "^3.6.3"
   },
   "name": "update_completed",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node -e \"import('./index.js').then(module => module.handler({body : []}).then(res => console.log(res)))\""
